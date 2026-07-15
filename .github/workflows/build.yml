@@ -37,7 +37,7 @@ jobs:
             android_ndk: "29.0.14206865"
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Read pinned Dusklight version
         id: dusklight
@@ -45,14 +45,14 @@ jobs:
         run: echo "version=$(sed -n 's/.*set(DUSKLIGHT_VERSION "\([^"]*\)").*/\1/p' CMakeLists.txt)" >> "$GITHUB_OUTPUT"
 
       - name: Cache Dusklight sources
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: dusklight
           key: dusklight-${{runner.os}}-${{steps.dusklight.outputs.version}}
 
       - name: Enable Visual Studio environment
         if: matrix.msvc_arch
-        uses: ilammy/msvc-dev-cmd@v1
+        uses: step-security/msvc-dev-cmd@v1
         with:
           arch: ${{matrix.msvc_arch}}
 
@@ -94,10 +94,10 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Download platform bundles
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           pattern: mod-*
           path: dist
