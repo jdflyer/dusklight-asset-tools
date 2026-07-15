@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.26)
-project(my_mod C CXX)
+project(my_mod CXX)
 
 # The Dusklight version to build against: a release tag (e.g. "v1.5.0") or a commit SHA.
 # To update your mod to a newer Dusklight version, change this line and reconfigure.
