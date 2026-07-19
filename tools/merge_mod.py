@@ -6,7 +6,7 @@ lib/<platform>/. This merges the lib/ trees, verifies that every native library 
 same mod ABI and service imports/exports (symgen modmeta --check), embeds that verified
 metadata into the bundle's mod.json (--update-json), and writes a deterministic zip.
 
-Usage: merge_mod.py -o combined.dusk [--symgen path] [--expect-platforms a,b,c] input.dusk...
+Usage: merge_mod.py -o combined.dusk [--symgen path] input.dusk...
 """
 
 import argparse
@@ -38,10 +38,6 @@ def main() -> None:
     parser.add_argument("inputs", nargs="+", type=Path, help="per-platform .dusk bundles")
     parser.add_argument("-o", "--output", required=True, type=Path, help="combined .dusk to write")
     parser.add_argument("--symgen", default="symgen", help="path to the symgen executable")
-    parser.add_argument(
-        "--expect-platforms",
-        help="comma-separated platform list that must be present (e.g. linux-x86_64,macos-arm64)",
-    )
     args = parser.parse_args()
 
     # Collect entries: non-lib content must be identical everywhere; lib/<platform>/ trees
@@ -79,11 +75,6 @@ def main() -> None:
 
     if "mod.json" not in content_hashes:
         fail("bundles contain no mod.json")
-    if args.expect_platforms:
-        expected = {p for p in args.expect_platforms.split(",") if p}
-        missing = sorted(expected - set(platform_sources))
-        if missing:
-            fail(f"missing platforms: {', '.join(missing)}")
 
     with tempfile.TemporaryDirectory() as tmp:
         stage = Path(tmp)

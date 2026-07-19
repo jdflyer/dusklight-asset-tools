@@ -47,6 +47,7 @@ and mod services.
 The included GitHub Actions workflow builds the mod for the following platforms:
 - Windows (AMD64 & ARM64)
 - macOS (Apple Silicon & Intel)
+- iOS (Apple Silicon)
 - Linux (x86_64 & aarch64)
 - Android (aarch64)
 
