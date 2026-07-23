@@ -6403,3 +6403,9 @@ u32 OSSJIStoUTF32(u16 sjis) {
 void OSPanic(const char* file, int line, const char* fmt, ...) {
 
 }
+
+void GXDestroyTexObj(GXTexObj* obj_) {
+
+}
+
+
