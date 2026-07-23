@@ -11,7 +11,7 @@ namespace assets {
 
 bool readPNG_RGBA8(const std::filesystem::path& filename, u32& outWidth, u32& outHeight,
     std::vector<GXColor>& outData) {
-    FILE* fp = fopen(filename.c_str(), "rb");
+    FILE* fp = fopen(filename.string().c_str(), "rb");
     if (!fp) {
         fprintf(stderr, "Failed to open %s for reading\n", filename.c_str());
         return false;
@@ -97,7 +97,7 @@ bool readPNG_RGBA8(const std::filesystem::path& filename, u32& outWidth, u32& ou
 
 bool writePNG_RGBA8(const std::filesystem::path& filename, u32 width, u32 height,
     const std::vector<GXColor>& rgbaData) {
-    FILE* fp = fopen(filename.c_str(), "wb");
+    FILE* fp = fopen(filename.string().c_str(), "wb");
     if (!fp) {
         fprintf(stderr, "Failed to open %s for writing\n", filename.c_str());
         return false;
