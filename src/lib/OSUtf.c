@@ -6399,3 +6399,7 @@ u32 OSSJIStoUTF32(u16 sjis) {
 
     return 0;
 }
+
+void OSPanic(const char* file, int line, const char* fmt, ...) {
+
+}

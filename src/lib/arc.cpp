@@ -257,12 +257,12 @@ size_t arc_pack_recurse(const std::filesystem::path& path, ARCInfoPack& info, in
     if (info.paths.contains(thisPathRel.string() + "/.")) {
         const auto& fileJson = info.paths[thisPathRel.string() + "/."];
         int index = fileJson.value("FileIndex",0);
-        info.files[index] = {0xFFFF,computeNameHash("."),(u32)((2<<24))|(0),currentDirIndex,0x10};
+        info.files[index] = {0xFFFF,computeNameHash("."),(u32)((2<<24)|(0)),(u32)currentDirIndex,0x10};
     }
     if (info.paths.contains(thisPathRel.string() + "/..")) {
         const auto& fileJson = info.paths[thisPathRel.string() + "/.."];
         int index = fileJson.value("FileIndex",0);
-        info.files[index] = {0xFFFF,computeNameHash(".."),(u32)((2<<24)|(2)),parentIndex,0x10};
+        info.files[index] = {0xFFFF,computeNameHash(".."),(u32)((2<<24)|(2)),(u32)parentIndex,0x10};
     }
 
     return entries.size() + 2; // Account for the . and .. directories

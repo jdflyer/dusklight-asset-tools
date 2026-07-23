@@ -25,7 +25,7 @@ jobs:
             runner: macos-latest
           - platform: macos-x86_64
             runner: macos-latest
-            cmake_args: -DCMAKE_OSX_ARCHITECTURES=x86_64
+            cmake_args: -DCMAKE_OSX_ARCHITECTURES=x86_64 -DCMAKE_DISABLE_FIND_PACKAGE_PNG=ON
           - platform: windows-amd64
             runner: windows-latest
             msvc_arch: amd64
