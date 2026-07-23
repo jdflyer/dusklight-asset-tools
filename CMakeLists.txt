@@ -37,7 +37,6 @@ set(ASSETS_LIB_FILES
     dusklight/src/dusk/io.cpp
     dusklight/src/dusk/audio/Adpcm.cpp
     src/lib/OSUtf.c
-    dusklight/libs/JSystem/src/JKernel/JKRDecomp.cpp
     dusklight/src/helpers/endian.cpp
 )
 

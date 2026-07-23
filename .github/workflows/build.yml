@@ -85,7 +85,9 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: dusklight-assets-${{matrix.platform}}
-          path: build/dusklight-assets
+          path: |
+            build/dusklight-assets
+            build/dusklight-assets.exe
           if-no-files-found: error
 
   release:
