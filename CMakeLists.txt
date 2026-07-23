@@ -52,10 +52,10 @@ include_directories(src/lib dusklight/include
     )
 
 add_library(dusklight-assets-lib STATIC ${ASSETS_LIB_FILES})
-add_definitions(-DTARGET_PC -DWIDESCREEN_SUPPORT)
-target_compile_definitions(dusklight-assets-lib PRIVATE -DTARGET_PC=1 -DWIDESCREEN_SUPPORT=1)
+add_definitions(-DTARGET_PC -DWIDESCREEN_SUPPORT -DDUSK_BUILDING_GAME)
+target_compile_definitions(dusklight-assets-lib PRIVATE -DTARGET_PC=1 -DWIDESCREEN_SUPPORT=1 -DDUSK_BUILDING_GAME=1)
 target_precompile_headers(dusklight-assets-lib PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_SOURCE_DIR}/dusklight/include/dusk_pch.hpp>")
-target_link_libraries(dusklight-assets-lib PRIVATE cxxopts::cxxopts nlohmann_json::nlohmann_json PNG::PNG)
+target_link_libraries(dusklight-assets-lib PRIVATE cxxopts::cxxopts nlohmann_json::nlohmann_json PNG::PNG TracyClient)
 
 add_executable(dusklight-assets src/main.cpp)
 target_link_libraries(dusklight-assets PRIVATE dusklight-assets-lib)
