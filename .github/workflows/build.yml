@@ -73,7 +73,7 @@ jobs:
           path: build/dusklight-assets
           if-no-files-found: error
 
-release:
+  release:
     name: Publish release
     needs: build
     if: startsWith(github.ref, 'refs/tags/')
