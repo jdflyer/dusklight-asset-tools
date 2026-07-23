@@ -167,7 +167,7 @@ size_t arc_pack_recurse(const std::filesystem::path& path, ARCInfoPack& info, in
     [&](const auto& a, const auto& b) {
         auto relA = std::filesystem::relative(a, info.originalPath);
         auto relB = std::filesystem::relative(b, info.originalPath);
-        return info.paths[relA]["FileIndex"] < info.paths[relB]["FileIndex"];
+        return info.paths[relA.string()]["FileIndex"] < info.paths[relB.string()]["FileIndex"];
     });
 
     const auto thisPathRel = std::filesystem::relative(path,info.originalPath);
