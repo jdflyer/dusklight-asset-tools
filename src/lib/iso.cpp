@@ -369,7 +369,7 @@ const std::vector<u8> iso_pack(const std::filesystem::path& source) {
     auto fst = (DVDEntry_BE*)&data[fstPosition];
 
     size_t currentOffset = isoSize - 20;
-    fst[0] = {1, {0, 0, 0}, 0, rootLen + 1};
+    fst[0] = {1, {0, 0, 0}, 0, (u32)rootLen + 1};
     for (auto& [path, entries] : fullPriority) {
         if (path.path == "BOOT") {
             entries = bootEntries;
@@ -380,12 +380,12 @@ const std::vector<u8> iso_pack(const std::filesystem::path& source) {
                 continue;
             }
             if (entry->isDir) {
-                fst[entry->fstIndex] = {entry->isDir, {}, entry->parentIndex, entry->dirSize};
+                fst[entry->fstIndex] = {entry->isDir, {}, (u32)entry->parentIndex, (u32)entry->dirSize};
                 fst[entry->fstIndex].setNameOffset(entry->fileNameOffset);
             } else {
                 size_t size = entry->buffer.size();
                 size_t offset = ALIGN_PREV(currentOffset - size, path.alignment);
-                fst[entry->fstIndex] = {entry->isDir, {}, offset, size};
+                fst[entry->fstIndex] = {entry->isDir, {}, (u32)offset, (u32)size};
                 fst[entry->fstIndex].setNameOffset(entry->fileNameOffset);
                 memcpy(&data[offset], entry->buffer.data(), size);
                 currentOffset = offset;
