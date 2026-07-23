@@ -849,6 +849,8 @@ const std::filesystem::path bmd_unpack(
 
     return outputName;
 }
-const std::vector<u8> bmd_pack(const std::filesystem::path& source) {}
+const std::vector<u8> bmd_pack(const std::filesystem::path& source) {
+    return {};
+}
 
 }  // namespace assets

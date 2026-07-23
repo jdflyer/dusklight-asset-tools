@@ -178,7 +178,7 @@ size_t arc_pack_recurse(const std::filesystem::path& path, ARCInfoPack& info, in
         std::vector<u8>& data = pathToData[entryPath];
 
         auto rel = std::filesystem::relative(entryPath,info.originalPath);
-        bool found = info.paths.contains(rel);
+        bool found = info.paths.contains(rel.string());
         if (!found) {
             printf("Warning: %s Not Found in archive!\n",rel.c_str());
             continue;
@@ -191,7 +191,7 @@ size_t arc_pack_recurse(const std::filesystem::path& path, ARCInfoPack& info, in
         info.stringTable += '\0';
         u16 hash = computeNameHash(sjisFileName);
 
-        const auto fileInfo = info.paths.at(rel);
+        const auto fileInfo = info.paths.at(rel.string());
         u16 fileIndex = fileInfo.value("FileIndex",0);
 
         if (firstIndex == -1) {
@@ -257,12 +257,12 @@ size_t arc_pack_recurse(const std::filesystem::path& path, ARCInfoPack& info, in
     if (info.paths.contains(thisPathRel.string() + "/.")) {
         const auto& fileJson = info.paths[thisPathRel.string() + "/."];
         int index = fileJson.value("FileIndex",0);
-        info.files[index] = {0xFFFF,computeNameHash("."),(2<<24)|(0),currentDirIndex,0x10};
+        info.files[index] = {0xFFFF,computeNameHash("."),(u32)((2<<24))|(0),currentDirIndex,0x10};
     }
     if (info.paths.contains(thisPathRel.string() + "/..")) {
         const auto& fileJson = info.paths[thisPathRel.string() + "/.."];
         int index = fileJson.value("FileIndex",0);
-        info.files[index] = {0xFFFF,computeNameHash(".."),(2<<24)|(2),parentIndex,0x10};
+        info.files[index] = {0xFFFF,computeNameHash(".."),(u32)((2<<24)|(2)),parentIndex,0x10};
     }
 
     return entries.size() + 2; // Account for the . and .. directories

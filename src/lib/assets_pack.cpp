@@ -94,11 +94,11 @@ std::filesystem::path assets_pack_convert_entry(
     }
 
     packConvertBinaryFunctionType convFunction = nullptr;
-    std::string newExtension = outputPath.extension();
+    std::string newExtension = outputPath.extension().string();
     int numExtensionsToStrip = 0;
 
     // First, search all explicit names
-    auto it = packConvTable.find(sourcePath.filename());
+    auto it = packConvTable.find(sourcePath.filename().string());
     if (it != packConvTable.end()) {
         if ((!isDir && it->second.sourceIsDir == false) || (isDir && it->second.sourceIsDir)) {
             convFunction = it->second.convFunction;

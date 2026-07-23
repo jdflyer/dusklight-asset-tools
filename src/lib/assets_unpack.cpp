@@ -58,7 +58,7 @@ std::filesystem::path assets_unpack_write(
 
     // Search the table first by full filename, then by extension
 
-    const std::string fullName = inputName.filename();
+    const std::string fullName = inputName.filename().string();
     auto it = unpackConvTable.find(fullName);
     if (it != unpackConvTable.end()) {
         convertFunction = it->second;
@@ -94,7 +94,7 @@ int assets_unpack_main(const std::filesystem::path& input, const std::filesystem
         for (const auto& entry : std::filesystem::recursive_directory_iterator(absoluteInput
                  )) {
             if (!entry.is_directory()) {
-                auto rel = absoluteOutput / std::filesystem::relative(entry.path(),absoluteInput);
+                std::filesystem::path rel = absoluteOutput / std::filesystem::relative(entry.path(),absoluteInput);
                 std::filesystem::create_directories(rel.parent_path());
                 const auto buffer = dusk::io::FileStream::ReadAllBytes(entry.path());
                 printf("%s -> %s\n",entry.path().c_str(),rel.c_str());
