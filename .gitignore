@@ -3,3 +3,7 @@
 /dusklight/
 .idea/
 .DS_Store
+.cache
+unpacked/
+packed/
+GZ2E01.iso
