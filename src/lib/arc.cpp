@@ -180,7 +180,7 @@ size_t arc_pack_recurse(const std::filesystem::path& path, ARCInfoPack& info, in
         auto rel = std::filesystem::relative(entryPath,info.originalPath);
         bool found = info.paths.contains(rel.string());
         if (!found) {
-            printf("Warning: %s Not Found in archive!\n",rel.c_str());
+            printf("Warning: %s Not Found in archive!\n",rel.string().c_str());
             continue;
         }
 

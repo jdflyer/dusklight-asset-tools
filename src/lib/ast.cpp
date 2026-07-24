@@ -97,6 +97,11 @@ const std::filesystem::path ast_unpack(
         offset += sizeof(block);
 
         for (int i = 0; i < header.channels; i++) {
+            if (offset + block.mSize > buffer.size()) {
+                // Fixes conversion on kyakumachi.ast which seems to be corrupted
+                offset = buffer.size();
+                break;
+            }
             const std::span<const u8> block_data = buffer.subspan(offset, block.mSize);
             switch (header.format) {
             case STREAM_FORMAT_ADPCM4: {

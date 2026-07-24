@@ -134,7 +134,7 @@ std::filesystem::path assets_pack_convert_entry(
         return outputPath;
     }
 
-    printf("Converting %s -> %s\n",sourcePath.c_str(),outputPath.filename().c_str());
+    printf("Converting %s -> %s\n",sourcePath.string().c_str(),outputPath.filename().string().c_str());
 
     std::vector<u8> defaultOutput;
     std::vector<u8>* outputBuffer= &defaultOutput;
