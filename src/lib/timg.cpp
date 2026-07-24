@@ -6,46 +6,57 @@
 #include <png.h>
 #include "assets.hpp"
 #include "dusk/io.hpp"
+#include <ostream>
 
 namespace assets {
 
+static void user_png_read_data(png_structp png_ptr, png_bytep data, png_size_t length) {
+    auto* stream = static_cast<std::istream*>(png_get_io_ptr(png_ptr));
+    stream->read(reinterpret_cast<char*>(data), length);
+}
+
+static void user_png_write_data(png_structp png_ptr, png_bytep data, png_size_t length) {
+    auto* stream = static_cast<std::ostream*>(png_get_io_ptr(png_ptr));
+    stream->write(reinterpret_cast<const char*>(data), length);
+}
+
+static void user_png_flush_data(png_structp png_ptr) {
+    auto* stream = static_cast<std::ostream*>(png_get_io_ptr(png_ptr));
+    stream->flush();
+}
+
 bool readPNG_RGBA8(const std::filesystem::path& filename, u32& outWidth, u32& outHeight,
     std::vector<GXColor>& outData) {
-    FILE* fp = fopen(filename.string().c_str(), "rb");
-    if (!fp) {
+    std::ifstream file(filename, std::ios::binary);
+    if (!file.is_open()) {
         fprintf(stderr, "Failed to open %s for reading\n", filename.generic_string().c_str());
         return false;
     }
 
-    // Verify PNG signature
+    // Verify PNG signature from C++ stream
     u8 sig[8];
-    if (fread(sig, 1, 8, fp) != 8 || png_sig_cmp(sig, 0, 8) != 0) {
+    if (!file.read(reinterpret_cast<char*>(sig), 8) || png_sig_cmp(sig, 0, 8) != 0) {
         fprintf(stderr, "%s is not a valid PNG file\n", filename.generic_string().c_str());
-        fclose(fp);
         return false;
     }
 
     png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
-    if (!png) {
-        fclose(fp);
-        return false;
-    }
+    if (!png) return false;
 
     png_infop info = png_create_info_struct(png);
     if (!info) {
         png_destroy_read_struct(&png, nullptr, nullptr);
-        fclose(fp);
         return false;
     }
 
     if (setjmp(png_jmpbuf(png))) {
         png_destroy_read_struct(&png, &info, nullptr);
-        fclose(fp);
         return false;
     }
 
-    png_init_io(png, fp);
-    png_set_sig_bytes(png, 8);  // we already read the 8-byte signature
+    // 2. Pass stream and custom reader callback to libpng
+    png_set_read_fn(png, &file, user_png_read_data);
+    png_set_sig_bytes(png, 8);  // We already read the 8-byte signature above
 
     png_read_info(png, info);
 
@@ -82,13 +93,12 @@ bool readPNG_RGBA8(const std::filesystem::path& filename, u32& outWidth, u32& ou
 
     std::vector<png_bytep> rowPointers(height);
     for (u32 y = 0; y < height; y++) {
-        rowPointers[y] = (u8*)outData.data() + (size_t)y * width * 4;
+        rowPointers[y] = reinterpret_cast<u8*>(outData.data()) + (size_t)y * width * 4;
     }
 
     png_read_image(png, rowPointers.data());
 
     png_destroy_read_struct(&png, &info, nullptr);
-    fclose(fp);
 
     outWidth = width;
     outHeight = height;
@@ -97,38 +107,33 @@ bool readPNG_RGBA8(const std::filesystem::path& filename, u32& outWidth, u32& ou
 
 bool writePNG_RGBA8(const std::filesystem::path& filename, u32 width, u32 height,
     const std::vector<GXColor>& rgbaData) {
-    FILE* fp = fopen(filename.string().c_str(), "wb");
-    if (!fp) {
+    std::ofstream file(filename, std::ios::binary);
+    if (!file.is_open()) {
         fprintf(stderr, "Failed to open %s for writing\n", filename.generic_string().c_str());
         return false;
     }
 
     png_structp png = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
-    if (!png) {
-        fclose(fp);
-        return false;
-    }
+    if (!png) return false;
 
     png_infop info = png_create_info_struct(png);
     if (!info) {
         png_destroy_write_struct(&png, nullptr);
-        fclose(fp);
         return false;
     }
 
     if (setjmp(png_jmpbuf(png))) {
         png_destroy_write_struct(&png, &info);
-        fclose(fp);
         return false;
     }
 
-    png_init_io(png, fp);
+    // 2. Instead of png_init_io(png, fp), pass the C++ stream to libpng
+    png_set_write_fn(png, &file, user_png_write_data, user_png_flush_data);
 
     png_set_IHDR(png, info, width, height, 8, PNG_COLOR_TYPE_RGBA, PNG_INTERLACE_NONE,
         PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
     png_write_info(png, info);
 
-    // Build row pointers directly into the source buffer (no copy needed)
     std::vector<png_bytep> rowPointers(height);
     for (u32 y = 0; y < height; y++) {
         rowPointers[y] = const_cast<png_bytep>((const u8*)rgbaData.data() + (size_t)y * width * 4);
@@ -138,7 +143,6 @@ bool writePNG_RGBA8(const std::filesystem::path& filename, u32 width, u32 height
     png_write_end(png, nullptr);
 
     png_destroy_write_struct(&png, &info);
-    fclose(fp);
     return true;
 }
 
