@@ -12,7 +12,32 @@ endif ()
 # Fetches the Dusklight sources into ./dusklight and provides DUSKLIGHT_DIR.
 # Use -DDUSKLIGHT_DIR= to point at an existing Dusklight checkout.
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/FetchDusklight.cmake")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/dusklight/" EXCLUDE_FROM_ALL)
+
+
+include(FetchContent)
+
+# Declare all dependencies first so CMake can download them in parallel
+message(STATUS "dusklight assets: Fetching cxxopts")
+FetchContent_Declare(cxxopts
+    URL https://github.com/jarro2783/cxxopts/archive/refs/tags/v3.3.1.tar.gz
+    URL_HASH SHA256=3bfc70542c521d4b55a46429d808178916a579b28d048bd8c727ee76c39e2072
+    DOWNLOAD_EXTRACT_TIMESTAMP FALSE
+)
+message(STATUS "dusklight assets: Fetching nlohmann/json")
+FetchContent_Declare(json
+    URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz
+    URL_HASH SHA256=42f6e95cad6ec532fd372391373363b62a14af6d771056dbfc86160e6dfff7aa
+    DOWNLOAD_EXTRACT_TIMESTAMP FALSE
+)
+message(STATUS "dusklight assets: Fetching libpng")
+FetchContent_Declare(
+      PNG
+      URL https://github.com/pnggroup/libpng/archive/refs/tags/v1.6.58.tar.gz
+      URL_HASH SHA256=A9D4DF463D36A6E5F9C29BD6F4967312D17E996C1854F3511F833924EB1993CF
+      DOWNLOAD_EXTRACT_TIMESTAMP FALSE
+      EXCLUDE_FROM_ALL
+    )
+FetchContent_MakeAvailable(cxxopts json PNG)
 
 # add_subdirectory("${DUSKLIGHT_DIR}/sdk" dusklight-sdk EXCLUDE_FROM_ALL)
 # add_mod(my_mod
@@ -50,11 +75,15 @@ include_directories(src/lib dusklight/include
     dusklight/extern
     )
 
+if (WIN32)
+    set(_USE_SHARED OFF)
+endif()
+
 add_library(dusklight-assets-lib STATIC ${ASSETS_LIB_FILES})
-add_definitions(-DTARGET_PC -DWIDESCREEN_SUPPORT -DDUSK_BUILDING_GAME)
-target_compile_definitions(dusklight-assets-lib PRIVATE -DTARGET_PC=1 -DWIDESCREEN_SUPPORT=1 -DDUSK_BUILDING_GAME=1)
+add_definitions(-DTARGET_PC -DWIDESCREEN_SUPPORT)
+target_compile_definitions(dusklight-assets-lib PRIVATE -DTARGET_PC=1 -DWIDESCREEN_SUPPORT=1)
 target_precompile_headers(dusklight-assets-lib PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_SOURCE_DIR}/dusklight/include/dusk_pch.hpp>")
-target_link_libraries(dusklight-assets-lib PRIVATE cxxopts::cxxopts nlohmann_json::nlohmann_json PNG::PNG TracyClient)
+target_link_libraries(dusklight-assets-lib PRIVATE cxxopts::cxxopts nlohmann_json::nlohmann_json png_static)
 
 add_executable(dusklight-assets src/main.cpp)
 target_link_libraries(dusklight-assets PRIVATE dusklight-assets-lib)
