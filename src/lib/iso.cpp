@@ -107,7 +107,7 @@ void iso_parse_fst(const std::filesystem::path& filesystemPath, const std::span<
                 continue;
             }
             std::filesystem::path filePath = dvdPathFull / fileEntry.getName(stringTable);
-            printf("Extracting: %s\n", filePath.string().c_str());
+            printf("Extracting: %s\n", filePath.generic_string().c_str());
             assets_unpack_write(
                 filePath, fullBuffer.subspan(fileEntry.entryOffset, fileEntry.entryLength), filePath);
         }
@@ -211,7 +211,7 @@ size_t iso_pack_recurse_fst(const std::filesystem::path& original,
         const auto& entry = entries[i];
         // If it's a file or will be converted to a file
         if (entry.is_directory() &&
-            packConvTable.find(entry.path().extension().string()) == packConvTable.end())
+            packConvTable.find(entry.path().extension().generic_string()) == packConvTable.end())
         {
             continue;  // We handle these after the async functions have run
         }
@@ -237,17 +237,17 @@ size_t iso_pack_recurse_fst(const std::filesystem::path& original,
     for (int i = 0; i < entries.size(); i++) {
         const auto& entry = entries[i];
         if (!entry.is_directory() ||
-            packConvTable.find(entry.path().extension().string()) != packConvTable.end())
+            packConvTable.find(entry.path().extension().generic_string()) != packConvTable.end())
         {
             localEntries[i].fileNameOffset = stringTable.size();
-            stringTable += localEntries[i].diskPath.filename().string() + '\0';
+            stringTable += localEntries[i].diskPath.filename().generic_string() + '\0';
             fstEntries.push_back(std::move(localEntries[i]));
         } else {
             size_t newIndex = fstEntries.size();
             fstEntries.push_back({{}, std::filesystem::relative(entry.path(), original), true,
                 stringTable.size(), parentIndex});
             size_t currentBeginningEntries = fstEntries.size();
-            stringTable += entry.path().filename().string() + '\0';
+            stringTable += entry.path().filename().generic_string() + '\0';
             size_t childEntries = iso_pack_recurse_fst(
                 original, entry.path(), fstEntries, stringTable, fstEntries.size() - 1, sem);
             fstEntries[newIndex].dirSize = currentBeginningEntries + childEntries;
@@ -262,7 +262,7 @@ const std::vector<u8> iso_pack(const std::filesystem::path& source) {
 
     std::ifstream diskJsonFile(source / "disk.json");
     if (!diskJsonFile.is_open()) {
-        throw std::runtime_error(std::string("Could not open ") + (source / "disk.json").string());
+        throw std::runtime_error(std::string("Could not open ") + (source / "disk.json").generic_string());
     }
 
     auto j = nlohmann::json::parse(diskJsonFile);
@@ -276,7 +276,7 @@ const std::vector<u8> iso_pack(const std::filesystem::path& source) {
     } else {
         bootBinPath = source / "sys" / "boot.bin";
         if (!std::filesystem::exists(bootBinPath)) {
-            throw std::runtime_error(std::string(bootBinPath.string() + " does not exist!"));
+            throw std::runtime_error(std::string(bootBinPath.generic_string() + " does not exist!"));
         }
         diskIdData = dusk::io::FileStream::ReadAllBytes(bootBinPath);
     }
@@ -322,7 +322,7 @@ const std::vector<u8> iso_pack(const std::filesystem::path& source) {
     for (const auto& bootPath : bootPriority) {
         for (int i = 0; i < fstEntries.size(); i++) {
             auto& entry = fstEntries[i];
-            if (entry.diskPath.string() == bootPath.path.string()) {
+            if (entry.diskPath.generic_string() == bootPath.path.generic_string()) {
                 bootEntries.push_back(&entry);
                 entry.used = true;
                 break;
@@ -346,10 +346,10 @@ const std::vector<u8> iso_pack(const std::filesystem::path& source) {
                 continue;
             }
 
-            if (entry.diskPath.string().starts_with(path.path.string()) &&
-                path.path.string().size() > maxLen)
+            if (entry.diskPath.generic_string().starts_with(path.path.generic_string()) &&
+                path.path.generic_string().size() > maxLen)
             {
-                maxLen = path.path.string().size();
+                maxLen = path.path.generic_string().size();
                 best = &pathTuple;
             }
         }

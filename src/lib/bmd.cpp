@@ -587,7 +587,7 @@ struct BMDUnpacker {
             const J3DShapeInitData& shapeInitData = shapeInitTable[indexTable[shapeNo]];
             std::string name = shapeNames.size() > 0 ?
                                    shapeNames[shapeNo] :
-                                   mPath.stem().string() + "_" + std::to_string(shapeNo);
+                                   mPath.stem().generic_string() + "_" + std::to_string(shapeNo);
 
             Shape shape;
             shape.idx = shapeNo;
@@ -676,7 +676,7 @@ struct BMDUnpacker {
                 mPath / (mTextureData[i].mName + ".png"), timg->width, timg->height, rgba);
         }
 
-        std::string pathStem = mPath.stem().string();
+        std::string pathStem = mPath.stem().generic_string();
 
         gltf["asset"] = {{"version", "2.0"}, {"generator", "Dusklight bmd to gltf converter"}};
         gltf["scene"] = 0;
@@ -800,7 +800,7 @@ struct BMDUnpacker {
         gltf["meshes"] = mNodesInMeshes;
         // gltf["meshes"] = {{{"primitives", {{{"attributes", {{"POSITION", 0}}}}}}}};
 
-        std::string outBinName = (mPath.stem().string() + ".bin");
+        std::string outBinName = (mPath.stem().generic_string() + ".bin");
         gltf["buffers"] = {{{"uri", outBinName}, {"byteLength", mOutBuffer.size()}}};
 
         gltf["bufferViews"] = mBufferViews;
@@ -842,7 +842,7 @@ const std::filesystem::path bmd_unpack(
     //     heap->destroy();
     // }
 
-    const auto gltfPath = outputName / (outputName.stem().string() + ".gltf");
+    const auto gltfPath = outputName / (outputName.stem().generic_string() + ".gltf");
 
     auto gltf_fs = dusk::io::FileStream::Create(gltfPath); 
     fs_writeString(gltf_fs,unpacker.gltf.dump(4));

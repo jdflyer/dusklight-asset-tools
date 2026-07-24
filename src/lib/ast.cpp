@@ -150,8 +150,8 @@ const std::filesystem::path ast_unpack(
     }
 
     std::filesystem::create_directories(outputName);
-    std::filesystem::path wavName = outputName / (outputName.stem().string() + ".wav");
-    std::filesystem::path jsonName = outputName / (outputName.stem().string() + ".json");
+    std::filesystem::path wavName = outputName / (outputName.stem().generic_string() + ".wav");
+    std::filesystem::path jsonName = outputName / (outputName.stem().generic_string() + ".json");
 
     size_t numSamples = channels[0].size();
 
@@ -306,13 +306,13 @@ std::array<u8, 9> encodeADPCM(const std::array<s16,16>& samples, s16& penult, s1
 }
 
 const std::vector<u8> ast_pack(const std::filesystem::path& source) {
-    const auto wavPath = source / (source.stem().string() + ".wav");
-    const auto jsonPath = source / (source.stem().string() + ".json");
+    const auto wavPath = source / (source.stem().generic_string() + ".wav");
+    const auto jsonPath = source / (source.stem().generic_string() + ".json");
 
     // Get the data from the json
     std::ifstream astJsonFile(jsonPath);
     if (!astJsonFile.is_open()) {
-        throw std::runtime_error(std::string("Could not open ") + jsonPath.string());
+        throw std::runtime_error(std::string("Could not open ") + jsonPath.generic_string());
     }
     auto j = nlohmann::json::parse(astJsonFile);
 

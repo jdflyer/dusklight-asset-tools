@@ -58,13 +58,13 @@ std::filesystem::path assets_unpack_write(
 
     // Search the table first by full filename, then by extension
 
-    const std::string fullName = inputName.filename().string();
+    const std::string fullName = inputName.filename().generic_string();
     auto it = unpackConvTable.find(fullName);
     if (it != unpackConvTable.end()) {
         convertFunction = it->second;
     }
 
-    const std::string ext = inputName.extension().string();
+    const std::string ext = inputName.extension().generic_string();
     if (convertFunction == nullptr) {
         it = unpackConvTable.find(ext);
         if (it != unpackConvTable.end()) {
@@ -74,7 +74,7 @@ std::filesystem::path assets_unpack_write(
 
     std::string compressedFlag = compressed ? ".c" : "";
     const std::filesystem::path outputPath =
-        name.parent_path() / (name.stem().string() + compressedFlag + name.extension().string());
+        name.parent_path() / (name.stem().generic_string() + compressedFlag + name.extension().generic_string());
 
     // Convert the file if any candidates
     if (convertFunction != nullptr) {
@@ -97,7 +97,7 @@ int assets_unpack_main(const std::filesystem::path& input, const std::filesystem
                 std::filesystem::path rel = absoluteOutput / std::filesystem::relative(entry.path(),absoluteInput);
                 std::filesystem::create_directories(rel.parent_path());
                 const auto buffer = dusk::io::FileStream::ReadAllBytes(entry.path());
-                printf("%s -> %s\n",entry.path().string().c_str(), rel.string().c_str());
+                printf("%s -> %s\n",entry.path().generic_string().c_str(), rel.generic_string().c_str());
                 assets_unpack_write(rel, std::span<const u8>(buffer), entry.path());
             }
         }

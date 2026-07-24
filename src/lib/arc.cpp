@@ -60,7 +60,7 @@ void arc_unpack_recurse(const std::filesystem::path& path, ARCInfoUnpack& info, 
             if (name == ".." || name == ".") {
                 nlohmann::ordered_json pathJson;
                 pathJson["path"] =
-                    std::filesystem::relative(newPath, info.originalPath).string() + "/" + name;
+                    std::filesystem::relative(newPath, info.originalPath).generic_string() + "/" + name;
                 pathJson["type"] = "dir";
                 info.paths[i + dir.first_file_index] = pathJson;
                 continue;
@@ -69,7 +69,7 @@ void arc_unpack_recurse(const std::filesystem::path& path, ARCInfoUnpack& info, 
 
             nlohmann::ordered_json pathJson;
             pathJson["path"] =
-                std::filesystem::relative(newPath / name, info.originalPath).string();
+                std::filesystem::relative(newPath / name, info.originalPath).generic_string();
             pathJson["type"] = "dir";
             info.paths[i + dir.first_file_index] = pathJson;
 
@@ -78,7 +78,7 @@ void arc_unpack_recurse(const std::filesystem::path& path, ARCInfoUnpack& info, 
         }
 
         nlohmann::ordered_json pathJson;
-        pathJson["path"] = std::filesystem::relative(newPath / name, info.originalPath).string();
+        pathJson["path"] = std::filesystem::relative(newPath / name, info.originalPath).generic_string();
         pathJson["type"] = "file";
         if (info.dataInfo.sync_file_ids_and_indices == false) {
             pathJson["id"] = entry.file_id.host();
@@ -167,31 +167,31 @@ size_t arc_pack_recurse(const std::filesystem::path& path, ARCInfoPack& info, in
     [&](const auto& a, const auto& b) {
         auto relA = std::filesystem::relative(a, info.originalPath);
         auto relB = std::filesystem::relative(b, info.originalPath);
-        return info.paths[relA.string()]["FileIndex"] < info.paths[relB.string()]["FileIndex"];
+        return info.paths[relA.generic_string()]["FileIndex"] < info.paths[relB.generic_string()]["FileIndex"];
     });
 
     const auto thisPathRel = std::filesystem::relative(path,info.originalPath);
-    int currentDirIndex = info.nodeNameToIndex[thisPathRel.string()];
+    int currentDirIndex = info.nodeNameToIndex[thisPathRel.generic_string()];
 
     for (int i = 0; i < updatedPaths.size(); i++) {
         const auto& entryPath = updatedPaths[i];
         std::vector<u8>& data = pathToData[entryPath];
 
         auto rel = std::filesystem::relative(entryPath,info.originalPath);
-        bool found = info.paths.contains(rel.string());
+        bool found = info.paths.contains(rel.generic_string());
         if (!found) {
-            printf("Warning: %s Not Found in archive!\n",rel.string().c_str());
+            printf("Warning: %s Not Found in archive!\n",rel.generic_string().c_str());
             continue;
         }
 
         size_t stringOffset = info.stringTable.size();
-        std::string fileName = entryPath.filename().string();
+        std::string fileName = entryPath.filename().generic_string();
         std::string sjisFileName = utf8_to_sjis(fileName);
         info.stringTable += sjisFileName;
         info.stringTable += '\0';
         u16 hash = computeNameHash(sjisFileName);
 
-        const auto fileInfo = info.paths.at(rel.string());
+        const auto fileInfo = info.paths.at(rel.generic_string());
         u16 fileIndex = fileInfo.value("FileIndex",0);
 
         if (firstIndex == -1) {
@@ -201,11 +201,11 @@ size_t arc_pack_recurse(const std::filesystem::path& path, ARCInfoPack& info, in
         // If the output is a dir, data should be 0, else, create a file
         if (data.size() == 0) {
             // Create Node + File
-            JKRArchive::SDIDirEntry node = {truncateName(fileName),stringOffset, hash};
+            JKRArchive::SDIDirEntry node = {truncateName(fileName),(u32)stringOffset, hash};
 
             int nodeIndex = info.nodes.size();
             info.nodes.push_back(node);
-            info.nodeNameToIndex[std::filesystem::relative(entryPath,info.originalPath).string()] = nodeIndex;
+            info.nodeNameToIndex[std::filesystem::relative(entryPath,info.originalPath).generic_string()] = nodeIndex;
 
             int newFirstIndex = -1;
             size_t numEntries = arc_pack_recurse(entryPath,info,newFirstIndex, currentDirIndex);
@@ -213,8 +213,8 @@ size_t arc_pack_recurse(const std::filesystem::path& path, ARCInfoPack& info, in
             info.nodes[nodeIndex].first_file_index = newFirstIndex;
             info.nodes[nodeIndex].num_entries = numEntries;
 
-            JKRArchive::SDIFileEntry fileEntry = {0xFFFF, hash, (2<<24) | (stringOffset &
-            0xFFFFFF), nodeIndex, 0x10}; info.files[fileIndex] = fileEntry;
+            JKRArchive::SDIFileEntry fileEntry = {0xFFFF, hash, (2<<24) | ((u32)stringOffset &
+            0xFFFFFF), (u32)nodeIndex, 0x10}; info.files[fileIndex] = fileEntry;
             continue;
         }
 
@@ -248,19 +248,19 @@ size_t arc_pack_recurse(const std::filesystem::path& path, ARCInfoPack& info, in
         info.fileData.resize(ALIGN_NEXT(info.fileData.size() + data.size(),0x20));
         memcpy(info.fileData.data()+dataOffset,data.data(),data.size());
         JKRArchive::SDIFileEntry fileEntry =
-        {id,hash,(flags<<24)|(stringOffset&0xFFFFFF),dataOffset,data.size()};
+        {id,hash,(flags<<24)|((u32)stringOffset&0xFFFFFF),dataOffset,(u32)data.size()};
         info.files[fileIndex] = fileEntry;
     }
 
     // Search for the /. and /.. entries of this dir
     
-    if (info.paths.contains(thisPathRel.string() + "/.")) {
-        const auto& fileJson = info.paths[thisPathRel.string() + "/."];
+    if (info.paths.contains(thisPathRel.generic_string() + "/.")) {
+        const auto& fileJson = info.paths[thisPathRel.generic_string() + "/."];
         int index = fileJson.value("FileIndex",0);
         info.files[index] = {0xFFFF,computeNameHash("."),(u32)((2<<24)|(0)),(u32)currentDirIndex,0x10};
     }
-    if (info.paths.contains(thisPathRel.string() + "/..")) {
-        const auto& fileJson = info.paths[thisPathRel.string() + "/.."];
+    if (info.paths.contains(thisPathRel.generic_string() + "/..")) {
+        const auto& fileJson = info.paths[thisPathRel.generic_string() + "/.."];
         int index = fileJson.value("FileIndex",0);
         info.files[index] = {0xFFFF,computeNameHash(".."),(u32)((2<<24)|(2)),(u32)parentIndex,0x10};
     }
@@ -273,7 +273,7 @@ const std::vector<u8> arc_pack(const std::filesystem::path& source) {
 
     std::ifstream arcJsonFile(source / "arc.json");
     if (!arcJsonFile.is_open()) {
-        throw std::runtime_error(std::string("Could not open ") + (source / "arc.json").string());
+        throw std::runtime_error(std::string("Could not open ") + (source / "arc.json").generic_string());
     }
     auto j = nlohmann::json::parse(arcJsonFile);
 

@@ -13,14 +13,14 @@ bool readPNG_RGBA8(const std::filesystem::path& filename, u32& outWidth, u32& ou
     std::vector<GXColor>& outData) {
     FILE* fp = fopen(filename.string().c_str(), "rb");
     if (!fp) {
-        fprintf(stderr, "Failed to open %s for reading\n", filename.string().c_str());
+        fprintf(stderr, "Failed to open %s for reading\n", filename.generic_string().c_str());
         return false;
     }
 
     // Verify PNG signature
     u8 sig[8];
     if (fread(sig, 1, 8, fp) != 8 || png_sig_cmp(sig, 0, 8) != 0) {
-        fprintf(stderr, "%s is not a valid PNG file\n", filename.string().c_str());
+        fprintf(stderr, "%s is not a valid PNG file\n", filename.generic_string().c_str());
         fclose(fp);
         return false;
     }
@@ -99,7 +99,7 @@ bool writePNG_RGBA8(const std::filesystem::path& filename, u32 width, u32 height
     const std::vector<GXColor>& rgbaData) {
     FILE* fp = fopen(filename.string().c_str(), "wb");
     if (!fp) {
-        fprintf(stderr, "Failed to open %s for writing\n", filename.string().c_str());
+        fprintf(stderr, "Failed to open %s for writing\n", filename.generic_string().c_str());
         return false;
     }
 
@@ -1423,8 +1423,8 @@ const std::filesystem::path bti_unpack(
     const std::vector<GXColor> RGBA = timgToRGBA(header, buffer);
 
     std::filesystem::create_directories(outputName);
-    std::filesystem::path pngName = outputName / (outputName.stem().string() + ".png");
-    std::filesystem::path jsonName = outputName / (outputName.stem().string() + ".json");
+    std::filesystem::path pngName = outputName / (outputName.stem().generic_string() + ".png");
+    std::filesystem::path jsonName = outputName / (outputName.stem().generic_string() + ".json");
     writePNG_RGBA8(pngName, header.width, header.height, RGBA);
 
     nlohmann::ordered_json btiJson = {{"tool_version", 1},
@@ -1534,8 +1534,8 @@ std::vector<u8> RGBAtoTimg(ResTIMG& header, std::vector<GXColor> rgba) {
 
 const std::vector<u8> bti_pack(const std::filesystem::path& source) {
     // Get the two files within the bti dir
-    const auto pngPath = source / (source.stem().string() + ".png");
-    const auto jsonPath = source / (source.stem().string() + ".json");
+    const auto pngPath = source / (source.stem().generic_string() + ".png");
+    const auto jsonPath = source / (source.stem().generic_string() + ".json");
 
     u32 width, height;
     std::vector<GXColor> rgba;
@@ -1546,7 +1546,7 @@ const std::vector<u8> bti_pack(const std::filesystem::path& source) {
     // Get the data from the json
     std::ifstream btiJsonFile(jsonPath);
     if (!btiJsonFile.is_open()) {
-        throw std::runtime_error(std::string("Could not open ") + jsonPath.string());
+        throw std::runtime_error(std::string("Could not open ") + jsonPath.generic_string());
     }
     auto j = nlohmann::json::parse(btiJsonFile);
 

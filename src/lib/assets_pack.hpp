@@ -43,8 +43,8 @@ inline std::vector<std::filesystem::directory_entry> getSortedFileList(
         std::filesystem::directory_iterator(path), std::filesystem::directory_iterator{});
     std::sort(entries.begin(), entries.end(), [](const auto& a, const auto& b) {
         // This ordering matches the original tools (lowercase compare with _ being sorted last)
-        auto an = utf8_to_sjis(a.path().filename().string());
-        auto bn = utf8_to_sjis(b.path().filename().string());
+        auto an = utf8_to_sjis(a.path().filename().generic_string());
+        auto bn = utf8_to_sjis(b.path().filename().generic_string());
         return std::lexicographical_compare(
             an.begin(), an.end(), bn.begin(), bn.end(), [](char a, char b) {
                 auto rank = [](char c) -> int {

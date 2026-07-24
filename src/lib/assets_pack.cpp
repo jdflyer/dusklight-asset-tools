@@ -86,7 +86,7 @@ std::filesystem::path assets_pack_convert_entry(
         doCompress = true;
         outputPath = outputPath.parent_path() /
                      std::filesystem::path(
-                         outputPath.stem().stem().string() + outputPath.extension().string());
+                         outputPath.stem().stem().generic_string() + outputPath.extension().generic_string());
     }
 
     if (AssetPackOptions::getOptions().noCompress) {
@@ -94,11 +94,11 @@ std::filesystem::path assets_pack_convert_entry(
     }
 
     packConvertBinaryFunctionType convFunction = nullptr;
-    std::string newExtension = outputPath.extension().string();
+    std::string newExtension = outputPath.extension().generic_string();
     int numExtensionsToStrip = 0;
 
     // First, search all explicit names
-    auto it = packConvTable.find(sourcePath.filename().string());
+    auto it = packConvTable.find(sourcePath.filename().generic_string());
     if (it != packConvTable.end()) {
         if ((!isDir && it->second.sourceIsDir == false) || (isDir && it->second.sourceIsDir)) {
             convFunction = it->second.convFunction;
@@ -109,7 +109,7 @@ std::filesystem::path assets_pack_convert_entry(
 
     // Next, search by extension
     if (convFunction == nullptr) {
-        it = packConvTable.find(sourcePath.extension().string());
+        it = packConvTable.find(sourcePath.extension().generic_string());
         if (it != packConvTable.end()) {
             if ((!isDir && it->second.sourceIsDir == false) || (isDir && it->second.sourceIsDir)) {
                 convFunction = it->second.convFunction;
@@ -127,14 +127,14 @@ std::filesystem::path assets_pack_convert_entry(
     for (int i = 0; i < numExtensionsToStrip; i++) {
         stem = stem.stem();
     }
-    outputPath = outputPath.parent_path() / std::filesystem::path(stem.string() + newExtension);
+    outputPath = outputPath.parent_path() / std::filesystem::path(stem.generic_string() + newExtension);
     
     bool doConvert = isSourceNewer(sourcePath, outputPath);
     if (!doConvert) {
         return outputPath;
     }
 
-    printf("Converting %s -> %s\n",sourcePath.string().c_str(),outputPath.filename().string().c_str());
+    printf("Converting %s -> %s\n",sourcePath.generic_string().c_str(),outputPath.filename().generic_string().c_str());
 
     std::vector<u8> defaultOutput;
     std::vector<u8>* outputBuffer= &defaultOutput;
@@ -183,7 +183,7 @@ void assets_pack_copy_recurse(
     for (const auto& entry : entries) {
         const auto relative = std::filesystem::relative(entry.path(), input);
 
-        if (!entry.is_directory() || packConvTable.find(entry.path().extension().string()) != packConvTable.end()) {
+        if (!entry.is_directory() || packConvTable.find(entry.path().extension().generic_string()) != packConvTable.end()) {
             
             sem.acquire();
             futures.push_back(std::async(std::launch::async, [=, &sem] {
@@ -205,13 +205,19 @@ void assets_pack_copy_recurse(
 
 int assets_pack_main(const std::filesystem::path& input, const std::filesystem::path& output, const AssetPackOptions& options) {
     AssetPackOptions::setOptions(options);
-    if (packConvTable.find(input.extension().string()) != packConvTable.end() || packConvTable.find(input.filename().string()) != packConvTable.end()) {
+    std::filesystem::path inputPath = input;
+    if (inputPath.has_relative_path() && inputPath.filename().empty()) {
+        // If the user's input ends with /, then ignore it
+        inputPath = inputPath.parent_path();
+    }
+
+    if (packConvTable.find(inputPath.extension().generic_string()) != packConvTable.end() || packConvTable.find(inputPath.filename().generic_string()) != packConvTable.end()) {
         // If argument is an asset, convert it right away
-        assets_pack_convert_entry(input, output, nullptr);
+        assets_pack_convert_entry(inputPath, output, nullptr);
     } else {
         // printf("%d\n",std::thread::hardware_concurrency());
         auto sem = std::counting_semaphore(std::thread::hardware_concurrency());
-        assets_pack_copy_recurse(input, output, sem);
+        assets_pack_copy_recurse(inputPath, output, sem);
     }
     return 0;
 }
