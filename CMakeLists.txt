@@ -37,6 +37,23 @@ FetchContent_Declare(
       DOWNLOAD_EXTRACT_TIMESTAMP FALSE
       EXCLUDE_FROM_ALL
     )
+if (NOT TARGET ZLIB::ZLIB)
+    message(STATUS "dusklight assets: Fetching zlib")
+    FetchContent_Declare(
+      ZLIB
+      URL https://github.com/madler/zlib/archive/refs/tags/v1.3.2.tar.gz
+      URL_HASH SHA256=b99a0b86c0ba9360ec7e78c4f1e43b1cbdf1e6936c8fa0f6835c0cd694a495a1
+      DOWNLOAD_EXTRACT_TIMESTAMP FALSE
+      EXCLUDE_FROM_ALL
+    )
+    set(ZLIB_BUILD_SHARED OFF CACHE BOOL "" FORCE)
+    set(ZLIB_BUILD_TESTING OFF CACHE BOOL "" FORCE)
+    set(ZLIB_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    set(ZLIB_INSTALL OFF CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(ZLIB)
+    # Vanilla zlib's modern CMake already exports ZLIB::ZLIB — no alias, no
+    # manual include-dir/library cache-var surgery needed.
+endif ()
 FetchContent_MakeAvailable(cxxopts json PNG)
 
 # add_subdirectory("${DUSKLIGHT_DIR}/sdk" dusklight-sdk EXCLUDE_FROM_ALL)
@@ -74,10 +91,6 @@ include_directories(src/lib dusklight/include
     dusklight/src
     dusklight/extern
     )
-
-if (WIN32)
-    set(_USE_SHARED OFF)
-endif()
 
 add_library(dusklight-assets-lib STATIC ${ASSETS_LIB_FILES})
 add_definitions(-DTARGET_PC -DWIDESCREEN_SUPPORT)
