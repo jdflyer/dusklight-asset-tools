@@ -16,6 +16,36 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/FetchDusklight.cmake")
 
 include(FetchContent)
 
+if (NOT TARGET ZLIB::ZLIB)
+    message(STATUS "dusklight assets: Fetching zlib")
+    FetchContent_Declare(
+      ZLIB
+      URL https://github.com/madler/zlib/archive/refs/tags/v1.3.2.tar.gz
+      URL_HASH SHA256=b99a0b86c0ba9360ec7e78c4f1e43b1cbdf1e6936c8fa0f6835c0cd694a495a1
+      DOWNLOAD_EXTRACT_TIMESTAMP FALSE
+      FIND_PACKAGE_ARGS NAMES ZLIB
+    )
+    set(ZLIB_BUILD_SHARED OFF CACHE BOOL "" FORCE)
+    set(ZLIB_BUILD_TESTING OFF CACHE BOOL "" FORCE)
+    set(ZLIB_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    set(ZLIB_INSTALL OFF CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(ZLIB)
+
+   if (TARGET zlibstatic)
+        set(_actual_zlib zlibstatic)
+    elseif (TARGET zlib)
+        set(_actual_zlib zlib)
+    endif ()
+
+    add_library(ZLIB::ZLIB INTERFACE IMPORTED)
+    
+    target_link_libraries(ZLIB::ZLIB INTERFACE ${_actual_zlib})
+    target_include_directories(ZLIB::ZLIB INTERFACE ${zlib_SOURCE_DIR} ${zlib_BINARY_DIR})
+    
+    set(ZLIB_FOUND TRUE CACHE BOOL "" FORCE)
+endif ()
+
+
 # Declare all dependencies first so CMake can download them in parallel
 message(STATUS "dusklight assets: Fetching cxxopts")
 FetchContent_Declare(cxxopts
@@ -29,6 +59,9 @@ FetchContent_Declare(json
     URL_HASH SHA256=42f6e95cad6ec532fd372391373363b62a14af6d771056dbfc86160e6dfff7aa
     DOWNLOAD_EXTRACT_TIMESTAMP FALSE
 )
+set(PNG_SHARED OFF CACHE BOOL "" FORCE)
+set(PNG_TESTS OFF CACHE BOOL "" FORCE)
+set(PNG_INSTALL OFF CACHE BOOL "" FORCE)
 message(STATUS "dusklight assets: Fetching libpng")
 FetchContent_Declare(
       PNG
@@ -37,23 +70,7 @@ FetchContent_Declare(
       DOWNLOAD_EXTRACT_TIMESTAMP FALSE
       EXCLUDE_FROM_ALL
     )
-if (NOT TARGET ZLIB::ZLIB)
-    message(STATUS "dusklight assets: Fetching zlib")
-    FetchContent_Declare(
-      ZLIB
-      URL https://github.com/madler/zlib/archive/refs/tags/v1.3.2.tar.gz
-      URL_HASH SHA256=b99a0b86c0ba9360ec7e78c4f1e43b1cbdf1e6936c8fa0f6835c0cd694a495a1
-      DOWNLOAD_EXTRACT_TIMESTAMP FALSE
-      EXCLUDE_FROM_ALL
-    )
-    set(ZLIB_BUILD_SHARED OFF CACHE BOOL "" FORCE)
-    set(ZLIB_BUILD_TESTING OFF CACHE BOOL "" FORCE)
-    set(ZLIB_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-    set(ZLIB_INSTALL OFF CACHE BOOL "" FORCE)
-    FetchContent_MakeAvailable(ZLIB)
-    # Vanilla zlib's modern CMake already exports ZLIB::ZLIB — no alias, no
-    # manual include-dir/library cache-var surgery needed.
-endif ()
+
 FetchContent_MakeAvailable(cxxopts json PNG)
 
 # add_subdirectory("${DUSKLIGHT_DIR}/sdk" dusklight-sdk EXCLUDE_FROM_ALL)
