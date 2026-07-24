@@ -43,6 +43,9 @@ if (NOT TARGET ZLIB::ZLIB)
     target_include_directories(ZLIB::ZLIB INTERFACE ${zlib_SOURCE_DIR} ${zlib_BINARY_DIR})
     
     set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR} ${zlib_BINARY_DIR} CACHE PATH "" FORCE)
+    set(ZLIB_INCLUDE_DIRS ${zlib_SOURCE_DIR} ${zlib_BINARY_DIR} CACHE PATH "" FORCE)
+    set(ZLIB_LIBRARY ZLIB::ZLIB CACHE STRING "ZLIB library target" FORCE)
+    set(ZLIB_LIBRARIES ZLIB::ZLIB CACHE STRING "ZLIB libraries" FORCE)
     set(ZLIB_FOUND TRUE CACHE BOOL "" FORCE)
 endif ()
 
