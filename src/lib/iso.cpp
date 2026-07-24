@@ -107,7 +107,7 @@ void iso_parse_fst(const std::filesystem::path& filesystemPath, const std::span<
                 continue;
             }
             std::filesystem::path filePath = dvdPathFull / fileEntry.getName(stringTable);
-            printf("Extracting: %s\n", filePath.c_str());
+            printf("Extracting: %s\n", filePath.string().c_str());
             assets_unpack_write(
                 filePath, fullBuffer.subspan(fileEntry.entryOffset, fileEntry.entryLength), filePath);
         }

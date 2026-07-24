@@ -110,7 +110,17 @@ const std::filesystem::path ast_unpack(
                 //     channels[i].data() + channelOffset, pcmLength, penult, last);
                 // printf("File Last: %d Actual Last: %d File Penult: %d Real Penult
                 // %d\n",last,last_penult_pair[i].second,penult,last_penult_pair[i].first);
-                dusk::audio::Adpcm4ToPcm16(block_data.data(), block_data.size(),
+                const u8* adpcm_block = block_data.data();
+                size_t adpcm_size = block_data.size();
+                std::vector<u8> blockCopy;
+                if (adpcm_size % 9 != 0) {
+                    // Copy the block to a new padded block so conversion can go nicely
+                    adpcm_size = adpcm_size + (9 - (adpcm_size % 9));
+                    blockCopy.resize(adpcm_size);
+                    memcpy(blockCopy.data(), adpcm_block, block_data.size());
+                    adpcm_block = blockCopy.data();
+                }
+                dusk::audio::Adpcm4ToPcm16(adpcm_block, adpcm_size,
                     channels[i].data() + channelOffset, pcmLength, last_penult_pair[i].first,
                     last_penult_pair[i].second);
                 break;

@@ -13,14 +13,14 @@ bool readPNG_RGBA8(const std::filesystem::path& filename, u32& outWidth, u32& ou
     std::vector<GXColor>& outData) {
     FILE* fp = fopen(filename.string().c_str(), "rb");
     if (!fp) {
-        fprintf(stderr, "Failed to open %s for reading\n", filename.c_str());
+        fprintf(stderr, "Failed to open %s for reading\n", filename.string().c_str());
         return false;
     }
 
     // Verify PNG signature
     u8 sig[8];
     if (fread(sig, 1, 8, fp) != 8 || png_sig_cmp(sig, 0, 8) != 0) {
-        fprintf(stderr, "%s is not a valid PNG file\n", filename.c_str());
+        fprintf(stderr, "%s is not a valid PNG file\n", filename.string().c_str());
         fclose(fp);
         return false;
     }
@@ -99,7 +99,7 @@ bool writePNG_RGBA8(const std::filesystem::path& filename, u32 width, u32 height
     const std::vector<GXColor>& rgbaData) {
     FILE* fp = fopen(filename.string().c_str(), "wb");
     if (!fp) {
-        fprintf(stderr, "Failed to open %s for writing\n", filename.c_str());
+        fprintf(stderr, "Failed to open %s for writing\n", filename.string().c_str());
         return false;
     }
 

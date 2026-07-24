@@ -7,3 +7,6 @@
 unpacked/
 packed/
 GZ2E01.iso
+.vs/
+out/
+CMakeSettings.json

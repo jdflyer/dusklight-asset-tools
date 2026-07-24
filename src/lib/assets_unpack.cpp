@@ -97,7 +97,7 @@ int assets_unpack_main(const std::filesystem::path& input, const std::filesystem
                 std::filesystem::path rel = absoluteOutput / std::filesystem::relative(entry.path(),absoluteInput);
                 std::filesystem::create_directories(rel.parent_path());
                 const auto buffer = dusk::io::FileStream::ReadAllBytes(entry.path());
-                printf("%s -> %s\n",entry.path().c_str(),rel.c_str());
+                printf("%s -> %s\n",entry.path().string().c_str(), rel.string().c_str());
                 assets_unpack_write(rel, std::span<const u8>(buffer), entry.path());
             }
         }
